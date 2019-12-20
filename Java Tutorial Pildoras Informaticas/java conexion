@@ -1,0 +1,349 @@
+
+//****************************************VIDEO 202***********************************************************
+ VISITAR https://docs.oracle.com/javase/7/docs/api/
+
+1) Instalar My SQL servidor 
+2) Driver JDBC My SQL
+3) Agregar Driver classpath
+
+*Descargar el dirver jdbc mysql de google
+* Descomprimir un archivo rar y obtener el archivo .tag con el icono de java 
+* Crear un nuevo proyecto en java eclipse 
+
+Boton derecho sobre el proyecto en eclipse 
+-> Properties
+-> Java Build Path
+-> Add external Jars
+
+Con esto se agregaran librerias para conectar con my sql
+crear un paquete con nombre ejemplo "ConectaBD"
+Dentro de este paquete crear una clase Conecta_Pruebas 
+decirle a eclipse que construya el metodo main 
+
+Crear una variable connection para la conexion a la base de datos
+
+package conectaBD;
+import java.sql.*;
+
+public class Conecta_Pruebas { 
+
+public static void main(String[] args){
+
+try {
+// 1. CREAR CONEXION
+Connection miConexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/pruebas","root","");
+ //2. CREAR OBJETO STATEMENT 
+Statement miStatement = miConexion.createStatement();
+
+// 3. EJECUTAR SQL
+ResultSet miResultset = miStatement.executeQuery("SELECT * FROM PRODUCTOS"); // se almacena dentro del objeto ResultSet lo que devuelve la consulta sql
+// 4. RECORRER EL RESULTSET
+
+while (miResultSet.next()) {
+System.out.println(miResultSet.getString("NOMBREARTICULO"+" "+miResultset.getString("CODIGOARTICULO")+ " "+ miResultset.getString("PRECIO"))); // se le pasa el nombre de la columna de la tabla
+ System.out.println(miResultSet.getString(3)+" "+miResultset.getString(1)+ " "+ miResultset.getString(4)));// se puede sustituir el nombre del campo por el indice de la columna
+}
+
+
+  }
+catch(Exception e){
+System.out.println("NO CONECTA");
+e.printStackTrace();
+}
+}
+}
+
+
+// ejecutar esto desde php my admin para saber el puerto de escucha
+SHOW VARIABLES WHERE VARIABLE_NAME IN('hostname', 'port')
+
+//***********************************************************VIDEO 204*************************************************
+Crear una clase llamada ModificaBBDD
+crear tambien el metodo main
+
+package conectaBD;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+
+public class ModificaBBDD{
+
+    public static void main(String[] args){
+     try {
+// 1. CREAR CONEXION
+Connection miConexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/pruebas","root","");
+ //2. CREAR OBJETO STATEMENT 
+Statement miStatement = miConexion.createStatement();
+
+String instruccionSql = "INSERT INTO PRODUCTOS (CODIGOARTICULO, NOMBREARTICULO, PRECIO) VALUES ('AR77', 'PANTALON', 25.35)";
+//  String instruccionSql = "UPDATE PRODUCTOS SET PRECIO = PRECIO*2 WHERE CODIGOARTICULO = 'AR77'";
+//  String instruccionSql = "DELETE FROM PRODUCTOS WHERE CODIGOARTICULO= 'AR77'"
+miStatement.executeUpdate(instruccionSql);
+System.out.println("Datos insertados correctamente");
+// System.out.println("Datos actualizados correctamente");
+
+  }
+catch(Exception e){
+System.out.println("NO CONECTA");
+e.printStackTrace();
+}
+    }
+ 
+}
+
+//***********************************************************VIDEO 205 CONSULTAS PREPARADAS***************************************************************
+Ventajas
+* Permiten pasar parametros a las sentencias  SQL 
+* Previenen de ataques de inyeccion SQL
+* Tienen un mejor rendimiento (Son sentencias precompiladas y reutilizables)
+
+investigar ataques de inyeccion sql
+
+Consulta normal 
+
+SELECT * FROM PRODUCTOS WHERE SECCION = 'DEPORTES' AND PAISDEORIGEN = 'ESPAÑA'
+
+Consulta Preparada 
+
+SELECT * FROM PRODUCTOS WHERE SECCION = ? AND PAISDEORIGEN = ?
+
+PreparedStatement
+
+Construir consultas PREPARADAS
+
+PreparedStatement sentencia = conexion.prepareStatement("SELECT * FROM PRODUCTOS WHERE SECCION=? AND PAISDEORIGEN =?");
+
+sentencia.setString(1, 'Deportes');
+sentencia.setString(2, 'España');
+ResultSet rs = sentencia.executeQuery();
+
+Crear una clase llamada ConsultaPreparada que tenga el metodo main
+
+package conectaBD;
+import java.sql.*;
+public class ConsultaPreparada {
+    public static void main (string[] args){
+       
+
+        try{
+             // 1. CREAR CONEXION 
+          Connection miConexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/pruebas","root","");
+          //2. PREPARAR CONSULTA 
+          PreparedStatement miSentencia = miConexion.prepareStatement("SELECT NOMBREARTICULO, SECCION, PAISDEORIGEN FROM PRODUCTOS" + "WHERE SECCION = ? AND PAISDEORIGEN = ?)"); // construir la sentencia sql
+            // 3. ESTABLECER LOS PARAMETROS DE CONSULTA
+            miSentencia.setString(1, "deportes");
+            miSentencia.setString(2, "USA");
+            // 4 EJECUTAR Y CORRER LA CONSULTA
+            ResultSet rs = miSentencia.executeQuery();
+            while(rs.next()){
+                System.out.println(rs.getString(1) +" "+ rs.getString(2) + " " +rs.getString(3));
+
+            }
+//una vez que esta completamente recorrido y visto en consola se cierra el resultset
+rs.close();
+// REUTILIZACION DE CONSULTA SQL
+System.out.println("EJECUCION SEGUNDA CONSULTA");
+System.out.println("");
+miSentencia.setString(1, "ceramica");
+miSentencia.setString(2, "China");
+// 4 EJECUTAR Y CORRER LA CONSULTA
+rs = miSentencia.executeQuery();
+while(rs.next()){
+    System.out.println(rs.getString(1) +" "+ rs.getString(2) + " " +rs.getString(3));
+
+}
+//una vez que esta completamente recorrido y visto en consola se cierra el resultset
+rs.close();
+        }
+         catch(SQLException e){
+             e.printStackTrace();
+         }
+        // 1. Crear conexion
+       
+    }
+}
+
+//**************************************************************VIDEO 206******************************************************** */
+
+
+
+crear una ventana con dos combobox y un boton abajo que diga consulta
+en el primer combobox aparecen reflejadas todas las secciones de los articulos de la tabla de productos
+el segundo combobox muestra los paises a los que pertenecen los articulos
+
+al seleccionar una seccion y presionar el boton de consulta, por ejemplo seleccionamos la seccion deportes y presonamos el boton de consulta
+y en el textarea van a aparecer los articulos de la seccion de deportes, 
+va a aparecer   NOMBRE_ARTICULO, SECCION, PRECIO, PAISORIGEN
+
+package conectaBD;
+
+import javax.swing.*;
+
+import java.awt.*;
+import java.sql.*;
+import java.awt.event.*;
+
+
+
+
+public class Aplicacion_Consulta {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		JFrame mimarco=new Marco_Aplicacion();
+		
+		mimarco.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		mimarco.setVisible(true);
+
+	}
+
+}
+
+class Marco_Aplicacion extends JFrame{
+	
+	public Marco_Aplicacion(){
+		
+		setTitle ("Consulta BBDD");
+		
+		setBounds(500,300,400,400);
+		
+		setLayout(new BorderLayout());
+		
+		JPanel menus=new JPanel();
+		
+		menus.setLayout(new FlowLayout());
+		
+		secciones=new JComboBox();
+		
+		secciones.setEditable(false);
+		
+		secciones.addItem("Todos");
+		
+		paises=new JComboBox();
+		
+		paises.setEditable(false);
+		
+		paises.addItem("Todos");
+		
+		resultado= new JTextArea(4,50);
+		
+		resultado.setEditable(false);
+		
+		add(resultado);
+		
+		menus.add(secciones);
+		
+		menus.add(paises);	
+		
+		add(menus, BorderLayout.NORTH);
+		
+		add(resultado, BorderLayout.CENTER);
+		
+		JButton botonConsulta=new JButton("Consulta");	
+        
+        botonConsulta.addActionListener(new ActionListener(){
+         @Override
+         public void actionPerformed(ActionEvent arg0){
+             ejecutaConsulta();
+         }
+        });
+
+        add(botonConsulta, BorderLayout.SOUTH);
+        
+        //---------------------CONEXION CON BBDD
+
+		try {
+// 1. CREAR CONEXION
+Connection miConexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/pruebas","root","");
+ //2. CREAR OBJETO STATEMENT 
+ Statement sentencia = miConexion.createStatement();
+ String consulta = "SELECT DISTINCTROW SECCION FROM PRODUCTOS"; // CON EL DISTINCROW SE EVITA QUE CARGUEN REGISTROS REPETIDOS, aqui se carga el combobox de secciones
+ ResultSet rs = sentencia.executeQuery(consulta);
+ while(rs.next()){
+
+secciones.addItem(rs.getString(1)); // con este codigo se rellena el primer comboBox
+ }
+ rs.close(); // se liberan recursos
+// carga jcombobox paises
+consulta = "SELECT DISTINCTROW PAISDEORIGEN FROM PRODUCTOS"; // CON EL DISTINCROW SE EVITA QUE CARGUEN REGISTROS REPETIDOS
+ rs = sentencia.executeQuery(consulta);
+while(rs.next()){
+
+paises.addItem(rs.getString(1)); // con este codigo se rellena el primer comboBox
+}
+rs.close(); // se liberan recursos
+
+} 
+catch(Exception e){
+
+}
+
+
+		
+		
+    }	
+private void ejecutaConsulta(){
+    ResultSet rs = null;
+    try{
+        resultado.setText("");// para resetar registros en el textarea, la nueva consulta reemplaza a la anterior
+     String seccion =(String)secciones.getSelectedItem(); // getSelectedItem( devuelve un valor de tipo Object, se castea para hacer la conversion a string
+    String pais = (String)paises.getSelectedItem();
+   if(!seccion.equals("Todos") && pais.equals("Todos")){ // el primer menu tiene la palabra todos seleccionada por defecto, si solo el combobox de las secciones
+    enviaConsultaSeccion = miConexion.prepareStatement(consultaSeccion);
+    enviaConsultaSeccion.setString(1, seccion);
+    rs=enviaConsultaSeccion.executeQuery();
+   } else if(seccion.equals("Todos") && !pais.equals("Todos")){ // se verifica si solo ha tocado el segundo combobox
+ 
+    enviaConsultaPais = miConexion.prepareStatement(consultaPais);
+    enviaConsultaPais.setString(1, pais);
+    rs=enviaConsultaPais.executeQuery();
+   } else if(!seccion.equals("Todos") && !pais.equals("Todos")){
+    enviaConsultaTodos = miConexion.prepareStatement(consultaTodos);
+    enviaConsultaTodos.setString(1, seccion);
+    enviaConsultaTodos.setString(2, pais);
+    rs=enviaConsultaTodos.executeQuery();
+   }
+
+
+      while(rs.next()){ // mientras haya registros en el resultset
+       resultado.append(rs.getString(1));
+       resultado.append(", "); // nombre del articulo coma, espacio
+   resultado.append(rs.getString(2));    // segunda columna corresponde a la seccion
+   resultado.append(", "); // nombre del articulo coma, espacio
+   resultado.append(rs.getString(3));    // tercera columna corresponde al precio
+   resultado.append(", "); // nombre del articulo coma, espacio
+   resultado.append(rs.getString(4));    // segunda columna corresponde al pais de origen
+
+   resultado.append("\n");
+      }
+  
+    }catch(Exception e){
+
+    }
+
+    
+
+}
+private Connection miConexion;
+    private PreparedStatement enviaConsultaSeccion;
+    private PreparedStatement enviaConsultaPais;
+    private PreparedStatement enviaConsultaTodos;
+     private final String consultaSeccion = "SELECT NOMBREARTICULO, SECCION, PRECIO, PAISDEORIGEN FROM PRODUCTOS WHERE SECCION = ?";                                            // se crea una variable para almacenar la consulta parametrizada
+ private final String consultaPais ="SELECT NOMBREARTICULO, SECCION, PRECIO, PAISDEORIGEN FROM PRODUCTOS WHERE PAISDEORIGEN = ?";
+ private final String consultaTodos ="SELECT NOMBREARTICULO, SECCION, PRECIO, PAISDEORIGEN FROM PRODUCTOS WHERE SECCION =? AND PAISDEORIGEN = ?";  
+ private JComboBox secciones;
+    private JComboBox paises;
+    private JTextArea resultado;
+}
+
+///////////////////////////
+addItem
+
+//*******************************************************************VIDEO 207 PRACTICA GUIADA II****************** */
+
+SELECT CAMPOS FROM PRODUCTOS WHERE SECCION = ?
+
